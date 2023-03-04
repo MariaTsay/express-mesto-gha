@@ -1,6 +1,12 @@
 [![Tests](../../actions/workflows/tests-13-sprint.yml/badge.svg)](../../actions/workflows/tests-13-sprint.yml) [![Tests](../../actions/workflows/tests-14-sprint.yml/badge.svg)](../../actions/workflows/tests-14-sprint.yml)
 # Проект Mesto фронтенд + бэкенд
 
+## Технологии
+
+* Express;
+* MongoDB;
+* Mongoose;
+* Postman;
 
 ## Директории
 
@@ -14,3 +20,5 @@
 
 `npm run start` — запускает сервер   
 `npm run dev` — запускает сервер с hot-reload
+
+Проект можно посмотреть по [ссылке](https://github.com/MariaTsay/express-mesto-gha)
