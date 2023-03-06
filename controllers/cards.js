@@ -8,13 +8,13 @@ module.exports.getCards = (req, res) => {
 
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
-  return Card.create({ name, link })
+  Card.create({ name, link, owner: req.user._id })
     .then((newCard) => res.status(200).send(newCard))
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
 
 module.exports.deleteCard = (req, res) => {
-  const { cardId } = req.card._id;
+  const { cardId } = req.params;
   Card.findByIdAndDelete(cardId)
     .orFail(() => res.status(500).send({ message: 'Произошла ошибка' }))
     .then((result) => {

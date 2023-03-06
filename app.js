@@ -16,7 +16,6 @@ mongoose
   });
 
 app.use(bodyParser.json());
-app.use('/', router);
 app.use((req, res, next) => {
   req.user = {
     _id: '640369a5a95dca3649528800',
@@ -24,6 +23,8 @@ app.use((req, res, next) => {
 
   next();
 });
+
+app.use('/', router);
 
 app.listen(PORT, () => {
   // Если всё работает, консоль покажет, какой порт приложение слушает
