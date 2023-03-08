@@ -9,7 +9,7 @@ module.exports.getUsers = (req, res) => {
 module.exports.getUserId = (req, res) => {
   const { userId } = req.params;
   User.findById(userId)
-    .orFail(() => res.status(404).send({ message: 'Пользователь не найден' }))
+    .orFail(() => res.status(400).send({ message: 'Переданы некорректные данные пользователя' }))
     .then((user) => res.status(200).send({ data: user }));
 };
 
@@ -23,7 +23,7 @@ module.exports.createUser = (req, res) => {
 module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
-    .orFail(() => res.status(404).send({ message: 'Пользователь не найден' }))
+    .orFail(() => res.status(400).send({ message: 'Переданы некорректные данные пользователя' }))
     .then((updatedUser) => res.status(200).send(updatedUser))
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
