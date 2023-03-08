@@ -10,7 +10,7 @@ module.exports.getUsers = (req, res) => {
 module.exports.getUserId = (req, res, next) => {
   const { userId } = req.params;
   User.findById(userId)
-    .orFail(() => res.status(400).send({ message: 'Переданы некорректные данные пользователя' }))
+    .orFail(() => res.status(404).send({ message: 'Пользователь не найден' }))
     .then((user) => res.status(200).send({ data: user }))
     .catch(((err) => {
       if (err.name === 'ValidationError') {

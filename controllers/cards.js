@@ -29,9 +29,15 @@ module.exports.likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .orFail(() => res.status(400).send({ message: 'Переданы некорректные данные пользователя' }))
+    .orFail(() => res.status(404).send({ message: 'Карточка с указанным  _id не найдена' }))
     .then((card) => res.status(200).send(card))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Переданы некорректные данные для постановки лайка' });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 };
 
 module.exports.dislikeCard = (req, res) => {
@@ -40,7 +46,13 @@ module.exports.dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
-    .orFail(() => res.status(400).send({ message: 'Переданы некорректные данные пользователя' }))
+    .orFail(() => res.status(404).send({ message: 'Карточка с указанным  _id не найдена' }))
     .then((card) => res.status(200).send(card))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Переданы некорректные данные для снятия лайка' });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 };
