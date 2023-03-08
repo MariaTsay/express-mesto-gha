@@ -9,12 +9,12 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUserId = (req, res, next) => {
   const { userId } = req.params;
-  User.findById(userId)
+  User.findById(userId, undefined, { runValidators: true })
     .orFail(() => res.status(404).send({ message: 'Пользователь с указанным _id не найден' }))
     .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля' });
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Переданы некорректные данные' });
       } else {
         next(err);
       }
