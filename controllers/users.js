@@ -24,12 +24,12 @@ module.exports.createUser = (req, res) => {
 
 module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
-    .orFail(() => res.status(400).send({ message: 'Переданы некорректные данные пользователя' }))
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+    .orFail(() => res.status(404).send({ message: 'Пользователь не найден' }))
     .then((updatedUser) => res.status(200).send(updatedUser))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(404).send({ message: 'Пользователь не найден' });
+        res.status(400).send({ message: 'Переданы некорректные данные пользователя' });
         return;
       }
       res.status(500).send({ message: 'Произошла ошибка' });
