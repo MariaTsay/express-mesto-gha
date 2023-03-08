@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const router = require('./routes');
+const NotFound = require('./errors/NotFound');
 
 const app = express();
 
@@ -15,7 +15,7 @@ mongoose
     console.log(`error during connection ${err}`);
   });
 
-app.use(bodyParser.json());
+app.use(express.json());
 app.use((req, res, next) => {
   req.user = {
     _id: '640369a5a95dca3649528800',
@@ -25,6 +25,9 @@ app.use((req, res, next) => {
 });
 
 app.use('/', router);
+app.use('*', (req, res, next) => {
+  next(new NotFound('Страница не найдена'));
+});
 
 app.listen(PORT, () => {
   // Если всё работает, консоль покажет, какой порт приложение слушает

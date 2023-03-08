@@ -13,7 +13,7 @@ module.exports.getUserId = (req, res) => {
     res.status(400).send({ message: 'Переданы некорректные данные' });
   }
 
-  User.findById(userId)
+  User.findById(userId, { runValidators: true })
     .orFail(() => res.status(404).send({ message: 'Пользователь с указанным _id не найден' }))
     .then((user) => res.status(200).send({ data: user }))
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
@@ -42,8 +42,14 @@ module.exports.updateUser = (req, res) => {
 
 module.exports.updateAvatar = (req, res) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .orFail(() => res.status(404).send({ message: 'Пользователь с указанным _id не найден' }))
     .then((updatedAvatar) => res.status(200).send(updatedAvatar))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) {
+        res.status(400).send({ message: 'Переданы некорректные данные пользователя' });
+        return;
+      }
+      res.status(500).send({ message: 'Произошла ошибка' });
+    });
 };
