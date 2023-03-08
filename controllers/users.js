@@ -1,3 +1,4 @@
+const { default: mongoose } = require('mongoose');
 const User = require('../models/user');
 
 module.exports.getUsers = (req, res) => {
@@ -11,7 +12,12 @@ module.exports.getUserId = (req, res) => {
   User.findById(userId)
     .orFail(() => res.status(400).send({ message: 'Переданы некорректные данные пользователя' }))
     .then((user) => res.status(200).send({ data: user }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) {
+        return;
+      }
+      res.status(500).send({ message: 'Произошла ошибка' });
+    });
 };
 
 module.exports.createUser = (req, res) => {
