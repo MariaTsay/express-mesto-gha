@@ -11,6 +11,7 @@ module.exports.getUserId = (req, res) => {
   const { userId } = req.params;
   if (!mongoose.isValidObjectId(userId)) {
     res.status(400).send({ message: 'Переданы некорректные данные' });
+    return;
   }
 
   User.findById(userId)
@@ -51,5 +52,11 @@ module.exports.updateAvatar = (req, res) => {
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .orFail(() => res.status(404).send({ message: 'Пользователь с указанным _id не найден' }))
     .then((updatedAvatar) => res.status(200).send(updatedAvatar))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) {
+        res.status(400).send({ message: 'Переданы некорректные данные пользователя' });
+        return;
+      }
+      res.status(500).send({ message: 'Произошла ошибка' });
+    });
 };
