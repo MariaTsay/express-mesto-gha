@@ -7,18 +7,16 @@ module.exports.getUsers = (req, res) => {
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
 
-module.exports.getUserId = (req, res, next) => {
+module.exports.getUserId = (req, res) => {
   const { userId } = req.params;
-  User.findById(userId, undefined, { runValidators: true })
+  if (!mongoose.isValidObjectId(userId)) {
+    res.status(400).send({ message: 'Переданы некорректные данные' });
+  }
+
+  User.findById(userId)
     .orFail(() => res.status(404).send({ message: 'Пользователь с указанным _id не найден' }))
     .then((user) => res.status(200).send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Переданы некорректные данные' });
-      } else {
-        next(err);
-      }
-    });
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
 
 module.exports.createUser = (req, res) => {
