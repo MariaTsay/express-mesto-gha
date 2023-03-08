@@ -13,9 +13,9 @@ module.exports.getUserId = (req, res) => {
     res.status(400).send({ message: 'Переданы некорректные данные' });
   }
 
-  User.findById(userId, { runValidators: true })
+  User.findById(userId)
     .orFail(() => res.status(404).send({ message: 'Пользователь с указанным _id не найден' }))
-    .then((user) => res.status(200).send({ data: user }))
+    .then((user) => res.status(200).send(user))
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
 
