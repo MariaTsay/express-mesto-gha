@@ -7,18 +7,18 @@ module.exports.getUsers = (req, res) => {
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
 
-module.exports.getUserId = (req, res, next) => {
+module.exports.getUserId = (req, res) => {
   const { userId } = req.params;
   User.findById(userId)
-    .orFail(() => res.status(404).send({ message: 'Пользователь не найден' }))
+    .orFail(() => res.status(404).send({ message: 'Пользователь с указанным _id не найден' }))
     .then((user) => res.status(200).send({ data: user }))
-    .catch(((err) => {
+    .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(err);
+        res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля' });
       } else {
-        next(err);
+        res.status(500).send({ message: 'Произошла ошибка' });
       }
-    }));
+    });
 };
 
 module.exports.createUser = (req, res) => {
@@ -31,7 +31,7 @@ module.exports.createUser = (req, res) => {
 module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .orFail(() => res.status(404).send({ message: 'Пользователь не найден' }))
+    .orFail(() => res.status(404).send({ message: 'Пользователь с указанным _id не найден' }))
     .then((updatedUser) => res.status(200).send(updatedUser))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
@@ -45,7 +45,7 @@ module.exports.updateUser = (req, res) => {
 module.exports.updateAvatar = (req, res) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
-    .orFail(() => res.status(404).send({ message: 'Пользователь не найден' }))
+    .orFail(() => res.status(404).send({ message: 'Пользователь с указанным _id не найден' }))
     .then((updatedAvatar) => res.status(200).send(updatedAvatar))
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
