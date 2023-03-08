@@ -17,9 +17,7 @@ module.exports.deleteCard = (req, res) => {
   const { cardId } = req.params;
   Card.findByIdAndDelete(cardId)
     .orFail(() => res.status(404).send({ message: 'Карточка с указанным  _id не найдена' }))
-    .then((result) => {
-      console.log(result);
-    })
+    .then((result) => res.status(200).send(result))
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
 
