@@ -7,7 +7,7 @@ module.exports.getUsers = (req, res) => {
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
 
-module.exports.getUserId = (req, res) => {
+module.exports.getUserId = (req, res, next) => {
   const { userId } = req.params;
   User.findById(userId)
     .orFail(() => res.status(404).send({ message: 'Пользователь с указанным _id не найден' }))
@@ -16,7 +16,7 @@ module.exports.getUserId = (req, res) => {
       if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля' });
       } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        next(err);
       }
     });
 };
