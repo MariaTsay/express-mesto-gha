@@ -1,7 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const router = require('./routes');
-const NotFound = require('./errors/NotFound');
 
 const app = express();
 
@@ -25,9 +24,6 @@ app.use((req, res, next) => {
 });
 
 app.use('/', router);
-app.use('*', (req, res, next) => {
-  next(new NotFound('Страница не найдена'));
-});
 
 app.listen(PORT, () => {
   // Если всё работает, консоль покажет, какой порт приложение слушает
