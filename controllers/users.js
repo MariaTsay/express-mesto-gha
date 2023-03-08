@@ -23,7 +23,13 @@ module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
     .then((newUser) => res.status(200).send({ data: newUser }))
-    .catch(() => res.status(400).send({ message: 'Переданы некорректные данные пользователя' }));
+    .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) {
+        res.status(400).send({ message: 'Переданы некорректные данные пользователя' });
+        return;
+      }
+      res.status(500).send({ message: 'Произошла ошибка' });
+    });
 };
 
 module.exports.updateUser = (req, res) => {
