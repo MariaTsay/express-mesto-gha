@@ -3,6 +3,7 @@ const { default: mongoose } = require('mongoose');
 
 const NotFound = require('../errors/NotFound');
 const BadRequest = require('../errors/BadRequest');
+const Forbidden = require('../errors/Forbidden');
 const Card = require('../models/card');
 
 const {
@@ -11,11 +12,11 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
 } = http2.constants;
 
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card.find({})
     .populate(['owner', 'likes'])
     .then((cards) => res.status(200).send({ data: cards }))
-    .catch(() => res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
+    .catch(next);
 };
 
 module.exports.createCard = (req, res, next) => {
@@ -24,7 +25,7 @@ module.exports.createCard = (req, res, next) => {
     .then((newCard) => res.status(201).send(newCard))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequest('ППереданы некорректные данные для создания карточки'));
+        next(new BadRequest('Переданы некорректные данные для создания карточки'));
       } else {
         next(err);
       }
@@ -41,7 +42,14 @@ module.exports.deleteCard = (req, res, next) => {
     .orFail(() => {
       throw new NotFound('Карточка с указанным  _id не найдена');
     })
-    .then((result) => res.status(200).send(result))
+    .then((card) => {
+      const owner = card.owner.toString();
+      if (req.user._id === owner) {
+        res.status(200).send(card);
+      } else {
+        throw new Forbidden('Вы можете удалять только свои карточки');
+      }
+    })
     .catch(next);
 };
 
