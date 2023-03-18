@@ -1,5 +1,8 @@
 const http2 = require('http2');
 const { default: mongoose } = require('mongoose');
+
+const NotFound = require('../errors/NotFound');
+const BadRequest = require('../errors/BadRequest');
 const Card = require('../models/card');
 
 const {
@@ -15,30 +18,31 @@ module.exports.getCards = (req, res) => {
     .catch(() => res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((newCard) => res.status(201).send(newCard))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Переданы некорректные данные для создания карточки' });
+        next(new BadRequest('ППереданы некорректные данные для создания карточки'));
       } else {
-        res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+        next(err);
       }
     });
 };
 
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   if (!mongoose.isValidObjectId(cardId)) {
-    res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-    return;
+    throw new BadRequest('Переданы некорректные данные');
   }
 
   Card.findByIdAndDelete(cardId)
-    .orFail(() => res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточка с указанным  _id не найдена' }))
+    .orFail(() => {
+      throw new NotFound('Карточка с указанным  _id не найдена');
+    })
     .then((result) => res.status(200).send(result))
-    .catch(() => res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
+    .catch(next);
 };
 
 module.exports.likeCard = (req, res) => {
