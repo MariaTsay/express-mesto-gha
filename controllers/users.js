@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const NotFound = require('../errors/NotFound');
 const BadRequest = require('../errors/BadRequest');
+const Conflict = require('../errors/Conflict');
 const User = require('../models/user');
 
 module.exports.getUsers = (req, res, next) => {
@@ -37,7 +38,9 @@ module.exports.createUser = (req, res, next) => {
     }))
     .then((newUser) => res.status(200).send({ data: newUser }))
     .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
+      if (err.code === 11000) {
+        next(new Conflict('Такой пользователь уже есть'));
+      } else if (err instanceof mongoose.Error.ValidationError) {
         next(new BadRequest('Переданы некорректные данные пользователя'));
       } else {
         next(err);
