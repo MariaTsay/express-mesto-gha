@@ -1,69 +1,102 @@
-const http2 = require('http2');
 const { default: mongoose } = require('mongoose');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const NotFound = require('../errors/NotFound');
+const BadRequest = require('../errors/BadRequest');
 const User = require('../models/user');
 
-const {
-  HTTP_STATUS_BAD_REQUEST,
-  HTTP_STATUS_NOT_FOUND,
-  HTTP_STATUS_INTERNAL_SERVER_ERROR,
-} = http2.constants;
-
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.status(200).send(users))
-    .catch(() => res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
+    .catch(next);
 };
 
-module.exports.getUserId = (req, res) => {
+module.exports.getUserId = (req, res, next) => {
   const { userId } = req.params;
   if (!mongoose.isValidObjectId(userId)) {
-    res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-    return;
+    throw new BadRequest('Переданы некорректные данные');
   }
 
   User.findById(userId)
-    .orFail(() => res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден' }))
+    .orFail(() => {
+      throw new NotFound('Пользователь с указанным _id не найден');
+    })
     .then((user) => res.status(200).send(user))
-    .catch(() => res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
+    .catch(next);
 };
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
+module.exports.createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
     .then((newUser) => res.status(200).send({ data: newUser }))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Переданы некорректные данные пользователя' });
-        return;
+        next(new BadRequest('Переданы некорректные данные пользователя'));
+      } else {
+        next(err);
       }
-      res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .orFail(() => res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден' }))
+    .orFail(() => {
+      throw new NotFound('Пользователь с указанным _id не найден');
+    })
     .then((updatedUser) => res.status(200).send(updatedUser))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Переданы некорректные данные пользователя' });
-        return;
+        next(new BadRequest('Переданы некорректные данные пользователя'));
+      } else {
+        next(err);
       }
-      res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .orFail(() => res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь с указанным _id не найден' }))
+    .orFail(() => {
+      throw new NotFound('Пользователь с указанным _id не найден');
+    })
     .then((updatedAvatar) => res.status(200).send(updatedAvatar))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Переданы некорректные данные пользователя' });
-        return;
+        next(new BadRequest('Переданы некорректные данные пользователя'));
+      } else {
+        next(err);
       }
-      res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
+};
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' });
+      res.send({ token });
+    })
+    .catch(next);
+};
+
+module.exports.getCurrentUser = (req, res, next) => {
+  if (!mongoose.isValidObjectId(req.user._id)) {
+    throw new BadRequest('Переданы некорректные данные');
+  }
+
+  User.findById(req.user._id)
+    .orFail(() => {
+      throw new NotFound('Пользователь с указанным _id не найден');
+    })
+    .then((currentUser) => res.status(200).send(currentUser))
+    .catch(next);
 };

@@ -1,16 +1,18 @@
 const router = require('express').Router();
-const http2 = require('http2');
-
-const {
-  HTTP_STATUS_NOT_FOUND,
-} = http2.constants;
+const auth = require('../middlewares/auth');
+const NotFound = require('../errors/NotFound');
 
 const userRouter = require('./users');
 const cardRouter = require('./cards');
+const authRouter = require('./auth');
 
-const pageNotFound = (req, res) => {
-  res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Страница не найдена' });
+const pageNotFound = (req, res, next) => {
+  next(new NotFound('Страница не найдена'));
 };
+
+router.use('/auth', authRouter);
+
+router.use(auth);
 
 router.use('/users', userRouter);
 router.use('/cards', cardRouter);

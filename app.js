@@ -15,15 +15,23 @@ mongoose
   });
 
 app.use(express.json());
-app.use((req, res, next) => {
-  req.user = {
-    _id: '640369a5a95dca3649528800',
-  };
-
-  next();
-});
 
 app.use('/', router);
+
+app.use((err, req, res, next) => {
+  // если у ошибки нет статуса, выставляем 500
+  const { statusCode = 500, message } = err;
+
+  res
+    .status(statusCode)
+    .send({
+      // проверяем статус и выставляем сообщение в зависимости от него
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка'
+        : message,
+    });
+  next();
+});
 
 app.listen(PORT, () => {
   // Если всё работает, консоль покажет, какой порт приложение слушает
