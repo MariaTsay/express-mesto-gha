@@ -10,7 +10,7 @@ const pageNotFound = (req, res, next) => {
   next(new NotFound('Страница не найдена'));
 };
 
-router.use('/auth', authRouter);
+router.use('/', authRouter);
 
 router.use(auth);
 
