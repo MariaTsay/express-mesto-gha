@@ -45,7 +45,7 @@ module.exports.deleteCard = (req, res, next) => {
       }
     })
     .catch((err) => {
-      if (!err.mongoose.isValidObjectId(cardId)) {
+      if (err.name === 'CastError') {
         next(new BadRequest('Переданы некорректные данные'));
       } else {
         next(err);
