@@ -102,7 +102,7 @@ module.exports.getCurrentUser = (req, res, next) => {
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (!err.mongoose.isValidObjectId(req.user._id)) {
-        throw new BadRequest('Переданы некорректные данные');
+        next(new BadRequest('Переданы некорректные данные'));
       } else {
         next(err);
       }
