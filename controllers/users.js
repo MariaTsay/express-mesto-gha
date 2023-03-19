@@ -21,11 +21,11 @@ module.exports.getUserId = (req, res, next) => {
       throw new NotFound('Пользователь с указанным _id не найден');
     })
     .then((user) => res.status(200).send(user))
-    .catch(() => {
-      if (!mongoose.isValidObjectId(userId)) {
+    .catch((err) => {
+      if (err.name === 'CastError') {
         next(new BadRequest('Переданы некорректные данные'));
       } else {
-        next();
+        next(err);
       }
     });
 };
