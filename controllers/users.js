@@ -15,16 +15,19 @@ module.exports.getUsers = (req, res, next) => {
 
 module.exports.getUserId = (req, res, next) => {
   const { userId } = req.params;
-  if (!mongoose.isValidObjectId(userId)) {
-    next(new BadRequest('Переданы некорректные данные'));
-  }
 
   User.findById(userId)
     .orFail(() => {
       throw new NotFound('Пользователь с указанным _id не найден');
     })
     .then((user) => res.status(200).send(user))
-    .catch(next);
+    .catch(() => {
+      if (!mongoose.isValidObjectId(userId)) {
+        next(new BadRequest('Переданы некорректные данные'));
+      } else {
+        next();
+      }
+    });
 };
 
 module.exports.createUser = (req, res, next) => {
