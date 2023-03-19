@@ -27,6 +27,9 @@ module.exports.createCard = (req, res, next) => {
 
 module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
+  if (!mongoose.isValidObjectId(cardId)) {
+    throw new BadRequest('Переданы некорректные данные');
+  }
 
   Card.findByIdAndDelete(cardId)
     .orFail(() => {
@@ -44,13 +47,7 @@ module.exports.deleteCard = (req, res, next) => {
         throw new Forbidden('Вы можете удалять только свои карточки');
       }
     })
-    .catch(() => {
-      if (!mongoose.isValidObjectId(cardId)) {
-        throw new BadRequest('Переданы некорректные данные');
-      } else {
-        next();
-      }
-    });
+    .catch();
 };
 
 module.exports.likeCard = (req, res, next) => {
