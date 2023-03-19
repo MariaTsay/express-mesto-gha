@@ -95,14 +95,16 @@ module.exports.login = (req, res, next) => {
 };
 
 module.exports.getCurrentUser = (req, res, next) => {
-  if (!mongoose.isValidObjectId(req.user._id)) {
-    throw new BadRequest('Переданы некорректные данные');
-  }
-
   User.findById(req.user._id)
     .orFail(() => {
       throw new NotFound('Пользователь с указанным _id не найден');
     })
     .then((user) => res.status(200).send(user))
-    .catch(next);
+    .catch((err) => {
+      if (!err.mongoose.isValidObjectId(req.user._id)) {
+        throw new BadRequest('Переданы некорректные данные');
+      } else {
+        next(err);
+      }
+    });
 };

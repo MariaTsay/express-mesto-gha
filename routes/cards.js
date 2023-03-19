@@ -5,11 +5,13 @@ const {
   getCards, createCard, deleteCard, likeCard, dislikeCard,
 } = require('../controllers/cards');
 
+const patternURL = require('../config/config');
+
 router.get('/', getCards);
 router.post('/', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required().pattern(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/),
+    link: Joi.string().required().pattern(patternURL),
   }),
 }), createCard);
 router.delete('/:cardId', celebrate({

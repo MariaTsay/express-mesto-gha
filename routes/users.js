@@ -5,6 +5,8 @@ const {
   getUsers, getUserId, getCurrentUser, updateUser, updateAvatar,
 } = require('../controllers/users');
 
+const patternURL = require('../config/config');
+
 router.get('/', getUsers);
 router.get('/me', getCurrentUser);
 router.get('/:userId', celebrate({
@@ -20,7 +22,7 @@ router.patch('/me', celebrate({
 }), updateUser);
 router.patch('/me/avatar', celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().pattern(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/),
+    avatar: Joi.string().pattern(patternURL),
   }),
 }), updateAvatar);
 
