@@ -44,11 +44,11 @@ module.exports.deleteCard = (req, res, next) => {
         throw new Forbidden('Вы можете удалять только свои карточки');
       }
     })
-    .catch((err) => {
-      if (!err.mongoose.isValidObjectId(cardId)) {
+    .catch(() => {
+      if (!mongoose.isValidObjectId(cardId)) {
         throw new BadRequest('Переданы некорректные данные');
       } else {
-        next(err);
+        next();
       }
     });
 };
